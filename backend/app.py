@@ -12,8 +12,11 @@ from pydantic import BaseModel
 import os
 from pypdf import PdfReader
 
-
-DOWNLOAD_DIR = "/Users/kyesteele/dev/document-library-cag/Downloads"
+DOWNLOAD_DIR = os.getenv("DOWNLOAD_DIR", "downloads")
+CHROMA_DIR = os.getenv("CHROMA_DIR", "chromadb")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 
 load_dotenv()
 
@@ -21,7 +24,7 @@ app = FastAPI(title="Document Library Chat API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["POST"],
     allow_headers=["Content-Type"],
 )
@@ -55,10 +58,10 @@ def get_pdf_title(file_path):
 
 
 def get_qa_chain():
-    embeddings = OllamaEmbeddings(model="nomic-embed-text")
+    embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL, base_url=OLLAMA_BASE_URL)
 
     vector_db = Chroma(
-        persist_directory="chromadb",
+        persist_directory="CHROMA_DIR",
         embedding_function=embeddings,
     )
 
